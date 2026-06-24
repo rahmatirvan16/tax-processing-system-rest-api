@@ -1,0 +1,516 @@
+﻿<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="UTF-8">
+  <title>Endpoint API per Role - Tax Processing System</title>
+  <style>
+    body {
+      font-family: Calibri, Arial, sans-serif;
+      font-size: 11pt;
+      margin: 2cm 2.5cm;
+      color: #000;
+    }
+    h1 {
+      font-size: 14pt;
+      font-weight: bold;
+      text-decoration: underline;
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: 12pt;
+      font-weight: bold;
+      margin-top: 24px;
+      margin-bottom: 6px;
+      background-color: #1F3864;
+      color: #ffffff;
+      padding: 4px 8px;
+    }
+    p.desc {
+      font-size: 10pt;
+      color: #444;
+      margin: 0 0 8px 0;
+      font-style: italic;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 20px;
+      font-size: 10.5pt;
+    }
+    thead tr {
+      background-color: #2E75B6;
+      color: #ffffff;
+    }
+    thead th {
+      border: 1px solid #1F3864;
+      padding: 6px 10px;
+      text-align: left;
+      font-weight: bold;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #D6E4F0;
+    }
+    tbody tr:nth-child(odd) {
+      background-color: #EBF3FB;
+    }
+    tbody td {
+      border: 1px solid #AEC6CF;
+      padding: 6px 10px;
+      vertical-align: top;
+    }
+    td.method {
+      font-family: Consolas, "Courier New", monospace;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    td.method.get    { color: #1a7f37; }
+    td.method.post   { color: #0550ae; }
+    td.method.put    { color: #9a6700; }
+    td.method.delete { color: #cf222e; }
+    .badge {
+      display: inline-block;
+      font-size: 9pt;
+      font-weight: bold;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 4px;
+      color: #fff;
+    }
+    .badge-admin   { background-color: #cf222e; }
+    .badge-petugas { background-color: #0550ae; }
+    .badge-wp      { background-color: #1a7f37; }
+  </style>
+</head>
+<body>
+
+<h1>ENDPOINT API YANG HARUS DIIMPLEMENTASIKAN</h1>
+<p style="font-size:10pt; margin-bottom:20px;">
+  Sistem: <strong>Tax Processing System (TPS) REST API</strong><br>
+  Base URL: <code>http://localhost:8000</code><br>
+  Autentikasi: <strong>Bearer Token (JWT)</strong> &mdash; diperoleh dari <code>POST /auth/login</code>
+</p>
+
+<!-- ===================== ROLE LEGEND ===================== -->
+<table style="width:auto; margin-bottom:16px;">
+  <thead>
+    <tr><th colspan="2" style="background:#444; color:#fff;">Keterangan Role</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><span class="badge badge-admin">ADMIN</span></td><td>Akses penuh ke seluruh sistem</td></tr>
+    <tr><td><span class="badge badge-petugas">PETUGAS</span></td><td>Input data &amp; lihat laporan, tidak bisa kelola user atau hapus data</td></tr>
+    <tr><td><span class="badge badge-wp">WAJIB_PAJAK</span></td><td>Hanya melihat data miliknya sendiri</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== AKUN SEEDER ===================== -->
+<table style="width:auto; margin-bottom:24px;">
+  <thead>
+    <tr><th colspan="3" style="background:#444; color:#fff;">Akun Bawaan (Hasil Seeder) untuk Pengujian</th></tr>
+    <tr style="background:#666; color:#fff;">
+      <th style="padding:5px 10px;">Username</th>
+      <th style="padding:5px 10px;">Password</th>
+      <th style="padding:5px 10px;">Role &amp; Keterangan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>admin</code></td>
+      <td><code>Pretest@2025</code></td>
+      <td><span class="badge badge-admin">ADMIN</span> &mdash; Akses penuh</td>
+    </tr>
+    <tr>
+      <td><code>petugas</code></td>
+      <td><code>Petugas@2025</code></td>
+      <td><span class="badge badge-petugas">PETUGAS</span> &mdash; Input data &amp; laporan</td>
+    </tr>
+    <tr>
+      <td><code>budi</code></td>
+      <td><code>Wajib@2025</code></td>
+      <td><span class="badge badge-wp">WAJIB_PAJAK</span> &mdash; Hanya lihat data sendiri</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ===================== AUTH ===================== -->
+<h2>1. Auth</h2>
+<p class="desc">Login bersifat publik (tanpa token). Endpoint <code>/auth/me</code> dan <code>/auth/logout</code> memerlukan Bearer Token.</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width:8%">Method</th>
+      <th style="width:28%">Endpoint</th>
+      <th>Keterangan</th>
+      <th style="width:13%">Token</th>
+      <th style="width:22%">Body / Parameter</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="method post">POST</td>
+      <td>/auth/login</td>
+      <td>Login dan dapatkan token JWT</td>
+      <td>&#10060; Tidak perlu</td>
+      <td><code>{ username, password }</code> &rarr; <code>{ token, expires_in }</code></td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/auth/me</td>
+      <td>Profil user yang sedang login</td>
+      <td>&#9989; Wajib</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method post">POST</td>
+      <td>/auth/logout</td>
+      <td>Logout dan invalidasi token</td>
+      <td>&#9989; Wajib</td>
+      <td>&mdash;</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ===================== ADMIN ===================== -->
+<h2>2. Role: ADMIN</h2>
+<p class="desc">Akses penuh &mdash; dapat mengelola user, wajib pajak, kewajiban, pembayaran, laporan, dan denda.</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width:8%">Method</th>
+      <th style="width:28%">Endpoint</th>
+      <th>Keterangan</th>
+      <th style="width:22%">Body / Parameter</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/users</td>
+      <td>Daftar seluruh user (search &amp; filter role)</td>
+      <td>Query: <code>search, role, per_page</code></td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/users/{id}</td>
+      <td>Detail user</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method post">POST</td>
+      <td>/users</td>
+      <td>Tambah user baru (ADMIN / PETUGAS)</td>
+      <td><code>{ name, username, email, password, role }</code></td>
+    </tr>
+    <tr>
+      <td class="method put">PUT</td>
+      <td>/users/{id}</td>
+      <td>Perbarui data user</td>
+      <td><code>{ name, username, email, password, role }</code></td>
+    </tr>
+    <tr>
+      <td class="method delete">DELETE</td>
+      <td>/users/{id}</td>
+      <td>Hapus user (tidak bisa hapus akun sendiri)</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/wajib-pajak</td>
+      <td>Daftar seluruh wajib pajak (search &amp; filter)</td>
+      <td>Query: <code>search, jenis, status_aktif, per_page</code></td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/wajib-pajak/{id}</td>
+      <td>Detail wajib pajak individu/badan usaha</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method post">POST</td>
+      <td>/wajib-pajak</td>
+      <td>Tambah wajib pajak baru (sekaligus buat akun login)</td>
+      <td><code>{ jenis, nama, nik/nib, npwp, email, telepon, alamat, username, password }</code></td>
+    </tr>
+    <tr>
+      <td class="method put">PUT</td>
+      <td>/wajib-pajak/{id}</td>
+      <td>Perbarui data wajib pajak</td>
+      <td><code>{ nama, email, telepon, alamat, status_aktif, ... }</code></td>
+    </tr>
+    <tr>
+      <td class="method delete">DELETE</td>
+      <td>/wajib-pajak/{id}</td>
+      <td>Hapus wajib pajak</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/kewajiban-pajak</td>
+      <td>Daftar seluruh kewajiban pajak (filter wajib pajak &amp; status)</td>
+      <td>Query: <code>wajib_pajak_id, jenis_pajak, status, per_page</code></td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/kewajiban-pajak/{id}</td>
+      <td>Detail kewajiban beserta riwayat pembayaran</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method post">POST</td>
+      <td>/kewajiban-pajak</td>
+      <td>Tambah kewajiban pajak baru</td>
+      <td><code>{ wajib_pajak_id, jenis_pajak, masa_pajak, pokok_pajak, jatuh_tempo }</code></td>
+    </tr>
+    <tr>
+      <td class="method post">POST</td>
+      <td>/pembayaran</td>
+      <td>Catat transaksi pembayaran (denda dihitung otomatis)</td>
+      <td><code>{ kewajiban_pajak_id, nominal, tanggal_bayar, keterangan }</code></td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/denda/{id}</td>
+      <td>Detail denda berdasarkan ID pembayaran</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/laporan</td>
+      <td>Laporan pembayaran per periode</td>
+      <td>Query: <code>tanggal_mulai, tanggal_akhir, jenis_pajak, status</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ===================== PETUGAS ===================== -->
+<h2>3. Role: PETUGAS</h2>
+<p class="desc">Dapat menginput data dan melihat laporan. Tidak dapat mengelola user atau menghapus data.</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width:8%">Method</th>
+      <th style="width:28%">Endpoint</th>
+      <th>Keterangan</th>
+      <th style="width:22%">Body / Parameter</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/wajib-pajak</td>
+      <td>Daftar seluruh wajib pajak (search &amp; filter)</td>
+      <td>Query: <code>search, jenis, status_aktif, per_page</code></td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/wajib-pajak/{id}</td>
+      <td>Detail wajib pajak individu/badan usaha</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method post">POST</td>
+      <td>/wajib-pajak</td>
+      <td>Tambah wajib pajak baru (sekaligus buat akun login)</td>
+      <td><code>{ jenis, nama, nik/nib, npwp, email, telepon, alamat, username, password }</code></td>
+    </tr>
+    <tr>
+      <td class="method put">PUT</td>
+      <td>/wajib-pajak/{id}</td>
+      <td>Perbarui data wajib pajak</td>
+      <td><code>{ nama, email, telepon, alamat, status_aktif, ... }</code></td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/kewajiban-pajak</td>
+      <td>Daftar seluruh kewajiban pajak</td>
+      <td>Query: <code>wajib_pajak_id, jenis_pajak, status, per_page</code></td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/kewajiban-pajak/{id}</td>
+      <td>Detail kewajiban beserta riwayat pembayaran</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method post">POST</td>
+      <td>/kewajiban-pajak</td>
+      <td>Tambah kewajiban pajak baru</td>
+      <td><code>{ wajib_pajak_id, jenis_pajak, masa_pajak, pokok_pajak, jatuh_tempo }</code></td>
+    </tr>
+    <tr>
+      <td class="method post">POST</td>
+      <td>/pembayaran</td>
+      <td>Catat transaksi pembayaran (denda dihitung otomatis)</td>
+      <td><code>{ kewajiban_pajak_id, nominal, tanggal_bayar, keterangan }</code></td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/denda/{id}</td>
+      <td>Detail denda berdasarkan ID pembayaran</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/laporan</td>
+      <td>Laporan pembayaran per periode</td>
+      <td>Query: <code>tanggal_mulai, tanggal_akhir, jenis_pajak, status</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ===================== WAJIB PAJAK ===================== -->
+<h2>4. Role: WAJIB_PAJAK</h2>
+<p class="desc">Hanya dapat melihat data miliknya sendiri. Akses ke data milik wajib pajak lain akan ditolak (403 Forbidden).</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width:8%">Method</th>
+      <th style="width:28%">Endpoint</th>
+      <th>Keterangan</th>
+      <th style="width:22%">Body / Parameter</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/wajib-pajak/me</td>
+      <td>Data diri sendiri <strong>tanpa perlu ID</strong> (direkomendasikan)</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/wajib-pajak</td>
+      <td>Daftar data diri sendiri (otomatis difilter, hasil paginasi)</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/kewajiban-pajak</td>
+      <td>Daftar kewajiban pajak milik sendiri (otomatis difilter)</td>
+      <td>Query: <code>status, jenis_pajak</code></td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/kewajiban-pajak/{id}</td>
+      <td>Detail kewajiban pajak (403 jika bukan miliknya)</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td class="method get">GET</td>
+      <td>/denda/{id}</td>
+      <td>Detail denda pembayaran (403 jika bukan miliknya)</td>
+      <td>&mdash;</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ===================== SUMMARY ===================== -->
+<h2>5. Ringkasan Akses per Endpoint</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width:36%">Endpoint</th>
+      <th style="width:10%; text-align:center;"><span class="badge badge-admin">ADMIN</span></th>
+      <th style="width:10%; text-align:center;"><span class="badge badge-petugas">PETUGAS</span></th>
+      <th style="width:10%; text-align:center;"><span class="badge badge-wp">WP</span></th>
+      <th>Catatan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>POST /auth/login</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td>Publik, tanpa token</td>
+    </tr>
+    <tr>
+      <td><code>GET/POST/PUT/DELETE /users</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">❌</td>
+      <td style="text-align:center;">❌</td>
+      <td>Khusus ADMIN</td>
+    </tr>
+    <tr>
+      <td><code>GET /wajib-pajak/me</code></td>
+      <td style="text-align:center;">❌</td>
+      <td style="text-align:center;">❌</td>
+      <td style="text-align:center;">✅</td>
+      <td>Khusus WP &mdash; data sendiri tanpa perlu ID</td>
+    </tr>
+    <tr>
+      <td><code>GET /wajib-pajak</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td>WP hanya lihat milik sendiri</td>
+    </tr>
+    <tr>
+      <td><code>GET /wajib-pajak/{id}</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">❌</td>
+      <td>Gunakan <code>/wajib-pajak/me</code> untuk WP</td>
+    </tr>
+    <tr>
+      <td><code>POST /wajib-pajak</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">❌</td>
+      <td>Otomatis buat akun login WP</td>
+    </tr>
+    <tr>
+      <td><code>PUT /wajib-pajak/{id}</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">❌</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><code>DELETE /wajib-pajak/{id}</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">❌</td>
+      <td style="text-align:center;">❌</td>
+      <td>Khusus ADMIN</td>
+    </tr>
+    <tr>
+      <td><code>GET /kewajiban-pajak</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td>WP hanya lihat milik sendiri</td>
+    </tr>
+    <tr>
+      <td><code>POST /kewajiban-pajak</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">❌</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><code>POST /pembayaran</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">❌</td>
+      <td>Denda dihitung otomatis</td>
+    </tr>
+    <tr>
+      <td><code>GET /denda/{id}</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td>WP hanya lihat milik sendiri</td>
+    </tr>
+    <tr>
+      <td><code>GET /laporan</code></td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">✅</td>
+      <td style="text-align:center;">❌</td>
+      <td>&mdash;</td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>
