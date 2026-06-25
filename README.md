@@ -290,7 +290,7 @@ php artisan l5-swagger:generate
 php artisan serve
 ```
 
-API tersedia di: `http://localhost:8000/api`
+API tersedia di: `http://localhost:8000`
 Swagger UI di: `http://localhost:8000/api/documentation`
 
 ---
@@ -374,7 +374,7 @@ FORWARD_DB_PORT=3307       # port MySQL yang diekspos ke host
 ./vendor/bin/sail artisan l5-swagger:generate
 ```
 
-API tersedia di: `http://localhost:8000/api`
+API tersedia di: `http://localhost:8000`
 Swagger UI di: `http://localhost:8000/api/documentation`
 
 #### Perintah Sail yang Sering Digunakan
@@ -426,7 +426,7 @@ composer run dev
 
 ## Referensi API
 
-**Base URL:** `http://localhost:8000/api`
+**Base URL:** `http://localhost:8000`
 
 Semua endpoint terproteksi memerlukan header:
 ```
@@ -588,7 +588,7 @@ Setelah menjalankan `php artisan db:seed`, akun berikut tersedia:
 | `petugas` | `Petugas@2025` | PETUGAS | Input data & lihat laporan |
 | `budi` | `Wajib@2025` | WAJIB_PAJAK | Hanya melihat data miliknya sendiri |
 
-> Gunakan akun di atas untuk login via `POST /api/auth/login`, kemudian sertakan token yang dikembalikan sebagai `Authorization: Bearer <token>` di setiap request berikutnya.
+> Gunakan akun di atas untuk login via `POST /auth/login`, kemudian sertakan token yang dikembalikan sebagai `Authorization: Bearer <token>` di setiap request berikutnya.
 
 ---
 
