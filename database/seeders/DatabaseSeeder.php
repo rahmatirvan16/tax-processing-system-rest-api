@@ -65,7 +65,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Akun WAJIB_PAJAK untuk user Budi Santoso.
+        // Akun WAJIB_PAJAK untuk user Budi Santoso (tertaut ke data individu).
         User::updateOrCreate(
             ['username' => 'budi'],
             [
@@ -73,6 +73,7 @@ class DatabaseSeeder extends Seeder
                 'email' => 'budi@example.com',
                 'password' => Hash::make('Wajib@2025'),
                 'role' => 'WAJIB_PAJAK',
+                'wajib_pajak_id' => $individu->id,
             ]
         );
 

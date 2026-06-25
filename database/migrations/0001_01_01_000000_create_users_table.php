@@ -19,6 +19,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['ADMIN', 'PETUGAS', 'WAJIB_PAJAK'])->default('PETUGAS');
+            // Relasi ke wajib_pajak: hanya diisi untuk user dengan role WAJIB_PAJAK
+            $table->unsignedBigInteger('wajib_pajak_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

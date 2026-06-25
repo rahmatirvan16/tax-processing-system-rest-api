@@ -44,3 +44,8 @@ Buatkan dokumentasi Github dengan ketentuan
 1.	README.md: setup guide, arsitektur sistem, keputusan desain, cara menjalankan test.
 2.	API Documentation: Swagger/OpenAPI 3.0 
 3.	ERD (Entity-Relationship Diagram): dalam bentuk gambar (.png/.svg) atau file .sql 
+
+---
+
+**Prompt 8
+unit test ada yang gagal 1 perbaiki kembali

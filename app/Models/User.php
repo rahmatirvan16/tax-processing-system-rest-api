@@ -30,6 +30,7 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'role',
+        'wajib_pajak_id',
     ];
 
     protected $hidden = [

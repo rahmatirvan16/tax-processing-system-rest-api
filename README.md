@@ -142,6 +142,8 @@ denda
 **Relasi antar tabel:**
 `wajib_pajak` → `kewajiban_pajak` → `pembayaran` → `denda` (rantai one-to-many, setiap level cascade-delete ke bawah)
 
+> ERD lengkap: [`docs/erd.sql`](docs/erd.sql) (skema SQL) dan [`docs/erd.md`](docs/erd.md) (diagram Mermaid, render otomatis di GitHub).
+
 ---
 
 ## Keputusan Desain
