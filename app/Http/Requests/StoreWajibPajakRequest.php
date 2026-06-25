@@ -18,12 +18,15 @@ class StoreWajibPajakRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        // Normalisasi format (buang spasi/titik/strip). NIK pada BADAN dan NIB
+        // pada INDIVIDU diabaikan (di-null-kan) sehingga tidak tersimpan,
+        // tanpa memunculkan error validasi.
         $clean = fn (?string $v) => $v === null ? null : preg_replace('/[\s.\-]/', '', $v);
         $jenis = $this->input('jenis');
 
         $this->merge([
-            'nik'  => $jenis === 'BADAN'     ? null : $clean($this->input('nik')),
-            'nib'  => $jenis === 'INDIVIDU'  ? null : $clean($this->input('nib')),
+            'nik'  => $jenis === 'BADAN'    ? null : $clean($this->input('nik')),
+            'nib'  => $jenis === 'INDIVIDU' ? null : $clean($this->input('nib')),
             'npwp' => $clean($this->input('npwp')),
         ]);
     }
@@ -32,10 +35,12 @@ class StoreWajibPajakRequest extends FormRequest
     {
         $jenis = $this->input('jenis');
 
+        // NIK wajib untuk INDIVIDU; untuk BADAN diabaikan (tidak divalidasi/tersimpan).
         $nikRules = $jenis === 'INDIVIDU'
             ? ['required', 'digits:16', Rule::unique('wajib_pajak', 'nik')]
             : ['nullable'];
 
+        // NIB wajib untuk BADAN; untuk INDIVIDU diabaikan.
         $nibRules = $jenis === 'BADAN'
             ? ['required', 'digits_between:9,30', Rule::unique('wajib_pajak', 'nib')]
             : ['nullable'];

@@ -14,6 +14,10 @@ class UpdateWajibPajakRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        // Normalisasi format (buang spasi/titik/strip). NIK pada BADAN dan NIB
+        // pada INDIVIDU diabaikan (di-null-kan) sehingga tidak tersimpan,
+        // tanpa memunculkan error validasi. Jenis efektif diambil dari request
+        // bila dikirim, jika tidak dari data tersimpan (route model binding).
         $clean = fn (?string $v) => $v === null ? null : preg_replace('/[\s.\-]/', '', $v);
         $jenis = $this->input('jenis') ?? $this->route('wajibPajak')?->jenis;
 
@@ -30,10 +34,12 @@ class UpdateWajibPajakRequest extends FormRequest
         $id = $this->route('wajibPajak')?->id ?? $this->route('wajibPajak');
         $jenis = $this->input('jenis') ?? $this->route('wajibPajak')?->jenis;
 
+        // NIK hanya untuk INDIVIDU; untuk BADAN diabaikan (tidak divalidasi/tersimpan).
         $nikRules = $jenis === 'BADAN'
             ? ['sometimes', 'nullable']
             : ['sometimes', 'nullable', 'digits:16', Rule::unique('wajib_pajak', 'nik')->ignore($id)];
 
+        // NIB hanya untuk BADAN; untuk INDIVIDU diabaikan.
         $nibRules = $jenis === 'INDIVIDU'
             ? ['sometimes', 'nullable']
             : ['sometimes', 'nullable', 'digits_between:9,30', Rule::unique('wajib_pajak', 'nib')->ignore($id)];

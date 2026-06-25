@@ -187,4 +187,73 @@ class ApiFlowTest extends TestCase
         // DELETE hanya untuk ADMIN
         $this->withToken($token)->deleteJson("/wajib-pajak/{$wp->id}")->assertStatus(403);
     }
+
+    public function test_store_badan_dengan_nik_diabaikan(): void
+    {
+        $token = $this->adminToken();
+
+        // BADAN mengirim NIK -> tidak error, NIK diabaikan (tidak tersimpan).
+        $this->withToken($token)->postJson('/wajib-pajak', [
+            'jenis'    => 'BADAN',
+            'nama'     => 'PT Z',
+            'npwp'     => '091234567890555',
+            'nib'      => '1234567890123',
+            'nik'      => '1171010101900050',
+            'username' => 'ptz',
+            'password' => 'Rahasia@2026',
+        ])->assertStatus(201)->assertJsonPath('data.nik', null);
+
+        $this->assertDatabaseHas('wajib_pajak', ['nama' => 'PT Z', 'nik' => null]);
+    }
+
+    public function test_store_individu_dengan_nib_diabaikan(): void
+    {
+        $token = $this->adminToken();
+
+        // INDIVIDU mengirim NIB -> tidak error, NIB diabaikan.
+        $this->withToken($token)->postJson('/wajib-pajak', [
+            'jenis'    => 'INDIVIDU',
+            'nama'     => 'Andi',
+            'nik'      => '1171010101900060',
+            'npwp'     => '091234567890556',
+            'nib'      => '1234567890124',
+            'username' => 'andi2',
+            'password' => 'Rahasia@2026',
+        ])->assertStatus(201)->assertJsonPath('data.nib', null);
+
+        $this->assertDatabaseHas('wajib_pajak', ['nama' => 'Andi', 'nib' => null]);
+    }
+
+    public function test_update_badan_dengan_nik_diabaikan(): void
+    {
+        $token = $this->adminToken();
+
+        $wp = WajibPajak::create([
+            'jenis' => 'BADAN', 'nama' => 'PT W', 'npwp' => '091234567890557',
+            'nib' => '9990001112223', 'status_aktif' => true,
+        ]);
+
+        // PUT badan dengan NIK -> tidak error, NIK tetap null (diabaikan).
+        $this->withToken($token)->putJson("/wajib-pajak/{$wp->id}", [
+            'nik' => '1171010101900070',
+        ])->assertOk()->assertJsonPath('data.nik', null);
+
+        $this->assertDatabaseHas('wajib_pajak', ['id' => $wp->id, 'nik' => null]);
+    }
+
+    public function test_update_individu_dengan_nib_diabaikan(): void
+    {
+        $token = $this->adminToken();
+
+        $wp = WajibPajak::create([
+            'jenis' => 'INDIVIDU', 'nama' => 'Budi', 'nik' => '1171010101900080', 'status_aktif' => true,
+        ]);
+
+        // PUT individu dengan NIB -> tidak error, NIB tetap null (diabaikan).
+        $this->withToken($token)->putJson("/wajib-pajak/{$wp->id}", [
+            'nib' => '1234567890125',
+        ])->assertOk()->assertJsonPath('data.nib', null);
+
+        $this->assertDatabaseHas('wajib_pajak', ['id' => $wp->id, 'nib' => null]);
+    }
 }
