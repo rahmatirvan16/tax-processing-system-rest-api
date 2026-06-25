@@ -14,6 +14,7 @@ REST API untuk pengelolaan kewajiban pajak wajib pajak, pencatatan pembayaran, d
 - [Panduan Setup](#panduan-setup)
   - [Cara 1 — XAMPP / PHP Lokal](#cara-1--xampp--php-lokal)
   - [Cara 2 — Docker (Laravel Sail)](#cara-2--docker-laravel-sail)
+  - [Cara 3 — WSL Windows (tanpa Docker Desktop)](#cara-3--wsl-windows-tanpa-docker-desktop)
 - [Menjalankan Aplikasi](#menjalankan-aplikasi)
 - [Referensi API](#referensi-api)
 - [Dokumentasi Endpoint per Role](#dokumentasi-endpoint-per-role)
@@ -201,7 +202,7 @@ Suite test menggunakan `DB_DATABASE=:memory:` (SQLite). Ini menghilangkan keterg
 
 ## Panduan Setup
 
-Tersedia dua cara menjalankan proyek ini. Pilih salah satu sesuai lingkungan yang digunakan.
+Tersedia tiga cara menjalankan proyek ini. Pilih salah satu sesuai lingkungan yang digunakan.
 
 ---
 
@@ -405,6 +406,85 @@ Swagger UI di: `http://localhost:8000/api/documentation`
 |------|---------------------|
 | XAMPP / PHP lokal | `127.0.0.1` |
 | Docker (Laravel Sail) | `mysql` |
+
+---
+
+### Cara 3 — WSL Windows (tanpa Docker Desktop)
+
+Gunakan cara ini jika menjalankan proyek langsung di dalam WSL (Windows Subsystem for Linux) tanpa menginstal Docker Desktop di Windows.
+
+#### Prasyarat
+
+- WSL2 dengan distro Ubuntu (20.04 / 22.04 / 24.04)
+- Docker Engine yang terinstal di dalam WSL (bukan Docker Desktop)
+
+#### Langkah-langkah
+
+**1. Clone repositori**
+
+```bash
+git clone https://github.com/rahmatirvan16/tax-processing-system-rest-api.git
+cd tax-processing-system-rest-api
+```
+
+**2. Install PHP dan dependensi sistem**
+
+```bash
+sudo apt update
+sudo apt install php php-cli php-mbstring php-xml php-curl unzip -y
+```
+
+**3. Install Composer**
+
+```bash
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+```
+
+**4. Install dependensi PHP**
+
+```bash
+composer install
+```
+
+**5. Konfigurasi environment**
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` sesuai konfigurasi Sail (sama seperti [Cara 2](#cara-2--docker-laravel-sail), langkah 3).
+
+**6. Jalankan container via Sail**
+
+```bash
+./vendor/bin/sail up -d
+```
+
+**7. Generate application key dan JWT secret**
+
+```bash
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan jwt:secret
+```
+
+**8. Jalankan migrasi**
+
+```bash
+./vendor/bin/sail artisan migrate
+./vendor/bin/sail artisan db:seed    # opsional
+```
+
+**9. Generate dokumentasi API**
+
+```bash
+./vendor/bin/sail artisan l5-swagger:generate
+```
+
+API tersedia di: `http://localhost:8000`
+Swagger UI di: `http://localhost:8000/api/documentation`
+
+> **Catatan:** PHP yang diinstal di langkah 2 hanya dibutuhkan untuk menjalankan `composer install` guna mengunduh paket vendor (termasuk Sail). Setelah container berjalan, semua perintah artisan dijalankan di dalam container via `./vendor/bin/sail artisan`.
 
 ---
 
